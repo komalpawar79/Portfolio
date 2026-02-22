@@ -10,6 +10,7 @@ router.post('/contact', async (req, res) => {
     const { name, email, message } = req.body;
 
     console.log('Received contact form:', { name, email });
+    console.log('Using Resend API key:', process.env.RESEND_API_KEY ? 'Key found' : 'Key missing');
 
     if (!name || !email || !message) {
       return res.status(400).json({ 
@@ -34,7 +35,7 @@ router.post('/contact', async (req, res) => {
       `
     });
 
-    console.log('Email sent successfully:', data);
+    console.log('Email sent successfully via Resend:', data);
 
     res.status(200).json({ 
       success: true, 
