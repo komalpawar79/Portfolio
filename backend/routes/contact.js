@@ -1,18 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Email transporter configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // POST - Send email
 router.post('/contact', async (req, res) => {
@@ -28,10 +18,12 @@ router.post('/contact', async (req, res) => {
       });
     }
 
-    // Email options
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    console.log('Sending email via Resend...');
+    
+    const data = await resend.emails.send({
+      from: 'Portfolio Contact <onboarding@resend.dev>',
       to: process.env.RECEIVER_EMAIL,
+      replyTo: email,
       subject: `Portfolio Contact: Message from ${name}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -39,14 +31,10 @@ router.post('/contact', async (req, res) => {
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Message:</strong></p>
         <p>${message}</p>
-      `,
-      replyTo: email
-    };
+      `
+    });
 
-    console.log('Sending email...');
-    // Send email
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully');
+    console.log('Email sent successfully:', data);
 
     res.status(200).json({ 
       success: true, 
