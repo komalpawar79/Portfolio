@@ -8,6 +8,9 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -15,6 +18,8 @@ const transporter = nodemailer.createTransport({
 router.post('/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
+
+    console.log('Received contact form:', { name, email });
 
     if (!name || !email || !message) {
       return res.status(400).json({ 
@@ -34,11 +39,14 @@ router.post('/contact', async (req, res) => {
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Message:</strong></p>
         <p>${message}</p>
-      `
+      `,
+      replyTo: email
     };
 
+    console.log('Sending email...');
     // Send email
     await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
 
     res.status(200).json({ 
       success: true, 
