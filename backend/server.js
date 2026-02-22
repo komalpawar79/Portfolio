@@ -1,15 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
 const contactRoutes = require('./routes/contact');
 
 dotenv.config();
 
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 // Middleware
 app.use(cors());
@@ -20,7 +16,7 @@ app.use('/api', contactRoutes);
 
 // Test route
 app.get('/', (req, res) => {
-  res.json({ message: 'Portfolio Backend API' });
+  res.json({ message: 'Portfolio Backend API - Email Service' });
 });
 
 const PORT = process.env.PORT || 5000;

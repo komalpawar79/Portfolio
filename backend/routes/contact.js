@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const Message = require('../models/Message');
+const nodemailer = require('nodemailer');
 
-// POST - Create new message
+// Email transporter configuration
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// POST - Send email
 router.post('/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -14,31 +23,32 @@ router.post('/contact', async (req, res) => {
       });
     }
 
-    const newMessage = new Message({ name, email, message });
-    await newMessage.save();
+    // Email options
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.RECEIVER_EMAIL,
+      subject: `Portfolio Contact: Message from ${name}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+      `
+    };
 
-    res.status(201).json({ 
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ 
       success: true, 
       message: 'Message sent successfully!' 
     });
   } catch (error) {
+    console.error('Email error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Server error', 
-      error: error.message 
-    });
-  }
-});
-
-// GET - Get all messages (optional - for admin)
-router.get('/messages', async (req, res) => {
-  try {
-    const messages = await Message.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: messages });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error', 
+      message: 'Failed to send message', 
       error: error.message 
     });
   }
